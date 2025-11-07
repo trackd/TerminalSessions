@@ -1,0 +1,25 @@
+﻿<Types>
+<Type>
+  <Name>TerminalSessions.SessionInfoExtra</Name>
+  <Members>
+    <MemberSet>
+      <Name>PSStandardMembers</Name>
+      <Members>
+        <PropertySet>
+          <Name>DefaultDisplayPropertySet</Name>
+          <ReferencedProperties>
+            <Name>SessionId</Name>
+            <Name>State</Name>
+            <Name>SessionName</Name>
+            <Name>UserName</Name>
+            <Name>DomainName</Name>
+            <Name>ComputerName</Name>
+            <Name>IdleTime</Name>
+            <Name>LogonTime</Name>
+          </ReferencedProperties>
+        </PropertySet>
+      </Members>
+    </MemberSet>
+  </Members>
+</Type>
+</Types>
