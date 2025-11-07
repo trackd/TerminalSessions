@@ -6,7 +6,8 @@ namespace TerminalSessions.Cmdlets;
 /// <summary>
 /// <para type="description">Enumerates all the sessions available on Windows hosts through the WTSEnumerateSessionsExW API.</para>
 /// </summary>
-[Cmdlet(VerbsCommon.Get, "WTSSession", DefaultParameterSetName = "SessionInfo")]
+[Cmdlet(VerbsCommon.Get, "TerminalSession", DefaultParameterSetName = "SessionInfo")]
+[Alias("Get-WTSSession")]
 [OutputType(typeof(SessionInfoExtra), ParameterSetName = new[] { "SessionInfoExtra" })]
 [OutputType(typeof(SessionInfo))]
 public class GetWTSSessionCommand : PSCmdlet
