@@ -14,7 +14,7 @@ Enumerates sessions on Windows Terminal Services hosts.
 ## SYNTAX
 
 ```
-Get-WTSSession [[-ComputerName] <String[]>] [-WithDetails] [<CommonParameters>]
+Get-WTSSession [[-ComputerName] <String[]>] [-Detailed] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

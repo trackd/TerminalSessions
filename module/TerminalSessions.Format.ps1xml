@@ -10,22 +10,22 @@
         <AutoSize />
         <TableHeaders>
           <TableColumnHeader>
-            <Label>SessionId</Label>
+            <Label>ComputerName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>State</Label>
+            <Label>SessionId</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>SessionName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>UserName</Label>
+            <Label>State</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>DomainName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>ComputerName</Label>
+            <Label>UserName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>ClientName</Label>
@@ -41,22 +41,46 @@
           <TableRowEntry>
             <TableColumnItems>
               <TableColumnItem>
-                <PropertyName>SessionId</PropertyName>
+                <PropertyName>ComputerName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>State</PropertyName>
+                <PropertyName>SessionId</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>SessionName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>UserName</PropertyName>
+                <ScriptBlock>
+                if ($PSStyle) {
+                    $state = @{
+                        Disconnected = $PSStyle.Foreground.BrightBlack
+                        Connected    = $PSStyle.Foreground.BrightGreen
+                        Reset        = $PSStyle.Reset
+                    }
+                }
+                else {
+                    $state = @{
+                        Disconnected = "$([char]27)[90m"
+                        Connected    = "$([char]27)[92m"
+                        Reset        = "$([char]27)[0m"
+                    }
+                }
+                if ($_.State -eq 'Disconnected') {
+                    '{0}{1}{2}' -f $state.Disconnected, $_.State.ToString(), $state.Reset
+                }
+                elseif ($_.State -eq 'Connected' -or $_.State -eq 'Active') {
+                    '{0}{1}{2}' -f $state.Connected, $_.State.ToString(), $state.Reset
+                }
+                else {
+                    $_.State
+                }
+                </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>DomainName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>ComputerName</PropertyName>
+                <PropertyName>UserName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>ClientName</PropertyName>
@@ -65,21 +89,39 @@
                 <ScriptBlock>
                   if ($_.IdleTime) {
                     $TimeSpan = $_.IdleTime
-                    if ($TimeSpan.TotalDays -ge 1) {
-                        '{0:0}d{1:0}h' -f $TimeSpan.TotalDays, $TimeSpan.Hours
-                    }
-                    elseif ($TimeSpan.TotalHours -ge 1) {
-                        '{0:0}h{1:0}m' -f $TimeSpan.TotalHours, $TimeSpan.Minutes
-                    }
-                    elseif ($TimeSpan.TotalMinutes -ge 1) {
-                        '{0:0}m{1:0}s' -f $TimeSpan.TotalMinutes, $TimeSpan.Seconds
-                    }
-                    elseif ($TimeSpan.TotalMilliseconds -lt 100) {
+                      if ($PSStyle) {
+                          $colorMap = @{
+                            Critical = $PSStyle.Formatting.Error
+                            Error = $PSStyle.Formatting.ErrorAccent
+                            Warning = $PSStyle.Formatting.Warning
+                            Good = $PSStyle.Formatting.FormatAccent
+                            Reset = $PSStyle.Reset
+                          }
+                      }
+                      else {
+                          $colorMap = @{
+                            Critical = "$([char]27)[91m"
+                            Error = "$([char]27)[36;1m"
+                            Warning = "$([char]27)[93m"
+                            Good = "$([char]27)[92m"
+                            Reset = "$([char]27)[0m"
+                          }
+                      }
+                      if ($TimeSpan.TotalDays -ge 1) {
+                        '{0}{1:0}d{2:0}h{3}' -f $colorMap.Critical, $TimeSpan.TotalDays, $TimeSpan.Hours, $colorMap.Reset
+                      }
+                      elseif ($TimeSpan.TotalHours -ge 1) {
+                        '{0}{1:0}h{2:0}m{3}' -f $colorMap.Error, $TimeSpan.TotalHours, $TimeSpan.Minutes, $colorMap.Reset
+                      }
+                      elseif ($TimeSpan.TotalMinutes -ge 1) {
+                        '{0}{1:0}m{2:0}s{3}' -f $colorMap.Warning, $TimeSpan.TotalMinutes, $TimeSpan.Seconds, $colorMap.Reset
+                      }
+                      elseif ($TimeSpan.TotalMilliseconds -lt 100) {
                         '{0:0}ms' -f $TimeSpan.TotalMilliseconds.ToString('0')
-                    }
-                    else {
-                        '{0:0}s' -f $TimeSpan.TotalSeconds.ToString('0.0')
-                    }
+                      }
+                      else {
+                        '{0}{1:0}s{2}' -f $colorMap.Good, $TimeSpan.TotalSeconds.ToString('0.0'), $colorMap.Reset
+                      }
                   }
               </ScriptBlock>
               </TableColumnItem>
@@ -104,22 +146,22 @@
         <AutoSize />
         <TableHeaders>
           <TableColumnHeader>
-            <Label>SessionId</Label>
+            <Label>ComputerName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>State</Label>
+            <Label>SessionId</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>SessionName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>UserName</Label>
+            <Label>State</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>DomainName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>ComputerName</Label>
+            <Label>UserName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>ClientName</Label>
@@ -129,22 +171,46 @@
           <TableRowEntry>
             <TableColumnItems>
               <TableColumnItem>
-                <PropertyName>SessionId</PropertyName>
+                <PropertyName>ComputerName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>State</PropertyName>
+                <PropertyName>SessionId</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>SessionName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>UserName</PropertyName>
+                <ScriptBlock>
+                if ($PSStyle) {
+                    $state = @{
+                        Disconnected = $PSStyle.Foreground.BrightBlack
+                        Connected    = $PSStyle.Foreground.BrightGreen
+                        Reset        = $PSStyle.Reset
+                    }
+                }
+                else {
+                    $state = @{
+                        Disconnected = "$([char]27)[90m"
+                        Connected    = "$([char]27)[92m"
+                        Reset        = "$([char]27)[0m"
+                    }
+                }
+                if ($_.State -eq 'Disconnected') {
+                    '{0}{1}{2}' -f $state.Disconnected, $_.State.ToString(), $state.Reset
+                }
+                elseif ($_.State -eq 'Connected' -or $_.State -eq 'Active') {
+                    '{0}{1}{2}' -f $state.Connected, $_.State.ToString(), $state.Reset
+                }
+                else {
+                    $_.State
+                }
+                </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>DomainName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>ComputerName</PropertyName>
+                <PropertyName>UserName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>ClientName</PropertyName>
@@ -162,15 +228,33 @@
       <TableControl>
         <AutoSize />
         <TableHeaders>
-          <TableColumnHeader><Label>SessionId</Label></TableColumnHeader>
-          <TableColumnHeader><Label>State</Label></TableColumnHeader>
-          <TableColumnHeader><Label>WinStationName</Label></TableColumnHeader>
-          <TableColumnHeader><Label>Domain</Label></TableColumnHeader>
-          <TableColumnHeader><Label>UserName</Label></TableColumnHeader>
-          <TableColumnHeader><Label>ConnectTime</Label></TableColumnHeader>
-          <TableColumnHeader><Label>DisconnectTime</Label></TableColumnHeader>
-          <TableColumnHeader><Label>LastInputTime</Label></TableColumnHeader>
-          <TableColumnHeader><Label>LogonTime</Label></TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SessionId</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>State</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>WinStationName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Domain</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>UserName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ConnectTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DisconnectTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LastInputTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LogonTime</Label>
+          </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
@@ -179,7 +263,31 @@
                 <PropertyName>SessionId</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>State</PropertyName>
+                <ScriptBlock>
+                if ($PSStyle) {
+                    $state = @{
+                        Disconnected = $PSStyle.Foreground.BrightBlack
+                        Connected    = $PSStyle.Foreground.BrightGreen
+                        Reset        = $PSStyle.Reset
+                    }
+                }
+                else {
+                    $state = @{
+                        Disconnected = "$([char]27)[90m"
+                        Connected    = "$([char]27)[92m"
+                        Reset        = "$([char]27)[0m"
+                    }
+                }
+                if ($_.State -eq 'Disconnected') {
+                    '{0}{1}{2}' -f $state.Disconnected, $_.State.ToString(), $state.Reset
+                }
+                elseif ($_.State -eq 'Connected' -or $_.State -eq 'Active') {
+                    '{0}{1}{2}' -f $state.Connected, $_.State.ToString(), $state.Reset
+                }
+                else {
+                    $_.State
+                }
+                </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>WinStationName</PropertyName>

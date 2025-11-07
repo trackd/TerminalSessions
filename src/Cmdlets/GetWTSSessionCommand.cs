@@ -33,12 +33,20 @@ public class GetWTSSessionCommand : PSCmdlet
         serverInfo = WtsNative.WTSOpenServerEx(name);
         if (Detailed.IsPresent)
         {
-          WriteObject(WtsNative.WTSEnumerateSessionsWithDetails(serverInfo, name), true);
+          var Sessions = WtsNative.WTSEnumerateSessionsWithDetails(serverInfo, name);
+          WriteObject(Sessions, true);
         }
         else
         {
-          WriteObject(WtsNative.WTSEnumerateSessionsExtra(serverInfo, name), true);
+          var Sessions = WtsNative.WTSEnumerateSessionsExtra(serverInfo, name);
+          WriteObject(Sessions, true);
         }
+      }
+      catch (PipelineStoppedException)
+      {
+        // Pipeline was stopped by downstream cmdlet (e.g., Select-Object -First)
+        // This is normal behavior, just rethrow to let PowerShell handle it
+        throw;
       }
       catch (Exception ex)
       {

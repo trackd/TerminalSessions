@@ -34,9 +34,9 @@
     # FileList = @()
     PrivateData            = @{
         PSData = @{
-            Tags = @('RDS', 'WTS', 'TerminalServices', 'Windows')
+            Tags = @('RDS', 'WTS', 'TerminalServices', 'Windows','quser','qwinsta')
             # LicenseUri = ''
-            # ProjectUri = ''
+            ProjectUri = 'https://github.com/trackd/TerminalSessions'
             # IconUri = ''
             # ReleaseNotes = ''
             # Prerelease = ''
