@@ -78,6 +78,14 @@ if (-not (Test-Path $dllPath)) {
 Copy-Item -Path $dllPath -Destination $OutputPath -Force
 Write-Host "    Copied TerminalSessions.dll" -ForegroundColor Green
 
+if ($Configuration -eq 'Debug') {
+    # Copy PDB to output (for debugging)
+    $pdbPath = Join-Path $BinPath 'TerminalSessions.pdb'
+    if (Test-Path $pdbPath) {
+        Copy-Item -Path $pdbPath -Destination $OutputPath -Force
+        Write-Host "    Copied TerminalSessions.pdb" -ForegroundColor Green
+    }
+}
 # Copy module files
 Write-Host "==> Copying module files..." -ForegroundColor Yellow
 if (Test-Path $ModuleSourcePath) {
