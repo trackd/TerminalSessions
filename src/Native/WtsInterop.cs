@@ -1,77 +1,44 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.RemoteDesktop;
 
-namespace TerminalSessions.Native;
+namespace TerminalSessions;
 
 /// <summary>
-/// P/Invoke declarations for Windows Terminal Services (WTS) API
+/// Facade around CsWin32 for WTS APIs to avoid leaking Windows.Win32 into consumers.
 /// </summary>
 internal static class WtsInterop
 {
-    private const string Wtsapi32 = "Wtsapi32.dll";
+  internal static unsafe HANDLE OpenServer(string name)
+  {
+    fixed (char* c = name)
+    {
+      return PInvoke.WTSOpenServerEx(new PWSTR(c));
+    }
+  }
 
-    /// <summary>
-    /// Closes an open handle to a terminal server
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtscloseserver
-    /// </summary>
-    [DllImport(Wtsapi32)]
-    internal static extern void WTSCloseServer(IntPtr hServer);
+  // Disambiguate by calling the HANDLE extern overload explicitly via cast
+  internal static void CloseServer(HANDLE h)
+  {
+    PInvoke.WTSCloseServer(h);
+  }
 
-    /// <summary>
-    /// Retrieves extended session information for the specified terminal server
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsenumeratesessionsexw
-    /// </summary>
-    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
-    internal static extern bool WTSEnumerateSessionsExW(
-        IntPtr hServer,
-        ref int pLevel,
-        int Filter,
-        out IntPtr ppSessionInfo,
-        out int pCount);
+  internal static unsafe bool EnumerateSessions(HANDLE server, ref uint level, out WTS_SESSION_INFO_1W* sessions, out uint count)
+  {
+    fixed (uint* pLevel = &level)
+    fixed (WTS_SESSION_INFO_1W** pSessions = &sessions)
+    fixed (uint* pCount = &count)
+    {
+      return PInvoke.WTSEnumerateSessionsEx(server, pLevel, 0, pSessions, pCount);
+    }
+  }
+  internal static unsafe void FreeSessions(WTS_SESSION_INFO_1W* sessions, uint count)
+      => PInvoke.WTSFreeMemoryEx(WTS_TYPE_CLASS.WTSTypeSessionInfoLevel1, (void*)sessions, count);
+  internal static unsafe bool QuerySessionInfo(HANDLE server, uint sessionId, WTS_INFO_CLASS klass, out PWSTR buffer, out uint bytes)
+      => PInvoke.WTSQuerySessionInformation(server, sessionId, klass, out buffer, out bytes);
 
-    /// <summary>
-    /// Frees memory allocated by the WTS API functions
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsfreememoryexw
-    /// </summary>
-    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
-    internal static extern bool WTSFreeMemoryExW(
-        int WTSTypeClass,
-        IntPtr pMemory,
-        int NumberOfEntries);
+  internal static unsafe void Free(void* p) => PInvoke.WTSFreeMemory(p);
 
-    /// <summary>
-    /// Frees memory allocated by the WTS API functions
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsfreememory
-    /// </summary>
-    [DllImport(Wtsapi32)]
-    internal static extern void WTSFreeMemory(IntPtr memory);
-
-    /// <summary>
-    /// Opens a handle to the specified terminal server
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsopenserverexw
-    /// </summary>
-    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
-    internal static extern IntPtr WTSOpenServerExW(string pServerName);
-
-    /// <summary>
-    /// Logs off a specified terminal services session
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtslogoffsession
-    /// </summary>
-    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
-    internal static extern bool WTSLogoffSession(
-        IntPtr hServer,
-        uint SessionId,
-        [MarshalAs(UnmanagedType.Bool)] bool bWait);
-
-    /// <summary>
-    /// Retrieves session information for the specified session on the specified terminal server
-    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsquerysessioninformationw
-    /// </summary>
-    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
-    internal static extern bool WTSQuerySessionInformation(
-        IntPtr hServer,
-        uint sessionId,
-        WTS_INFO_CLASS wtsInfoClass,
-        out IntPtr ppBuffer,
-        out uint pBytesReturned);
+  internal static BOOL Logoff(HANDLE server, uint sessionId, BOOL wait)
+      => PInvoke.WTSLogoffSession(server, sessionId, wait);
 }

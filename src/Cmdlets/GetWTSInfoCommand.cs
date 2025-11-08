@@ -1,10 +1,8 @@
-﻿using System;
-using System.Management.Automation;
+﻿using System.Management.Automation;
 
 namespace TerminalSessions.Cmdlets;
 
-/// <summary>
-/// <para type="synopsis">Retrieves WTS information for a session on a Windows host.</para>
+  /// <summary>
   /// <para type="description">Retrieves WTS information for a session on a Windows host through the WTSQueryWTSINFO API.</para>
   /// </summary>
   [Cmdlet(VerbsCommon.Get, "WTSInfo")]

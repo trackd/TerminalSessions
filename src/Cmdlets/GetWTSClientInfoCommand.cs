@@ -1,5 +1,4 @@
-﻿using System;
-using System.Management.Automation;
+﻿using System.Management.Automation;
 
 namespace TerminalSessions.Cmdlets;
 
@@ -19,11 +18,11 @@ namespace TerminalSessions.Cmdlets;
 
     protected override void ProcessRecord()
     {
-    // Skip sessions that don't have client information (Listen, Down, Init, Disconnected)
-    if (SessionInfo.State == WtsConnectState.Listen ||
-          SessionInfo.State == WtsConnectState.Down ||
-          SessionInfo.State == WtsConnectState.Init ||
-          SessionInfo.State == WtsConnectState.Disconnected)
+      // Skip sessions that don't have client information (Listen, Down, Init, Disconnected)
+          if (SessionInfo.State == WtsConnectState.Listen ||
+            SessionInfo.State == WtsConnectState.Down ||
+            SessionInfo.State == WtsConnectState.Init ||
+            SessionInfo.State == WtsConnectState.Disconnected)
       {
         WriteVerbose($"Session {SessionInfo.SessionId} on {SessionInfo.ComputerName} has no client attached (State: {SessionInfo.State}). Skipping.");
         return;

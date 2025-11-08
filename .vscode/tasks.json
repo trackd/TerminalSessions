@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dotnet-build",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["build", "src/TerminalSessions.csproj", "--configuration", "Debug", "--nologo", "--verbosity", "minimal"],
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "module-build",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "build.ps1", "-Configuration", "Debug"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "pester-tests",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "Invoke-Pester -Path tests -Output Detailed"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "pester-coverage",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "$cfg=New-PesterConfiguration; $cfg.Run.Path='tests'; $cfg.Output.Verbosity='Detailed'; $cfg.CodeCoverage.Enabled=$true; $cfg.CodeCoverage.Path='src'; Invoke-Pester -Configuration $cfg"],
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

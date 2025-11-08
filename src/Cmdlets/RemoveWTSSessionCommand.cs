@@ -3,8 +3,7 @@ using System.Management.Automation;
 
 namespace TerminalSessions.Cmdlets;
 
-/// <summary>
-/// <para type="synopsis">Removes a session from a Windows host.</para>
+  /// <summary>
   /// <para type="description">Removes a session from a Windows host through the WTSLogoffSession API.</para>
   /// </summary>
   [Cmdlet(VerbsCommon.Remove, "WTSSession", SupportsShouldProcess = true, ConfirmImpact = ConfirmImpact.High)]

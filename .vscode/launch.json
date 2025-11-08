@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch PowerShell (Import Module)",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}/.vscode/ImportModule.ps1",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "module-build"
+    },
+    {
+      "name": "Attach to PowerShell (pwsh)",
+      "type": "coreclr",
+      "request": "attach",
+      "processName": "pwsh",
+      "justMyCode": false
+    },
+    {
+      "name": "Attach to Windows PowerShell (powershell.exe)",
+      "type": "coreclr",
+      "request": "attach",
+      "processName": "powershell",
+      "justMyCode": false
+    }
+  ]
+}

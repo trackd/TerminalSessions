@@ -70,13 +70,32 @@ finally {
 }
 
 # Copy DLL to output
-Write-Host "==> Copying DLL to output..." -ForegroundColor Yellow
+Write-Host "==> Copying assemblies to output..." -ForegroundColor Yellow
 $dllPath = Join-Path $BinPath 'TerminalSessions.dll'
 if (-not (Test-Path $dllPath)) {
     Write-Error "DLL not found at: $dllPath"
 }
 Copy-Item -Path $dllPath -Destination $OutputPath -Force
 Write-Host "    Copied TerminalSessions.dll" -ForegroundColor Green
+
+# Copy required dependencies for CsWin32
+$dependencies = @(
+    'System.Memory.dll',
+    'System.Runtime.CompilerServices.Unsafe.dll',
+    'System.Buffers.dll',
+    'System.Numerics.Vectors.dll'
+)
+
+foreach ($dep in $dependencies) {
+    $depPath = Join-Path $BinPath $dep
+    if (Test-Path $depPath) {
+        Copy-Item -Path $depPath -Destination $OutputPath -Force
+        Write-Host "    Copied $dep" -ForegroundColor Green
+    }
+    else {
+        Write-Warning "Dependency not found: $dep"
+    }
+}
 
 if ($Configuration -eq 'Debug') {
     # Copy PDB to output (for debugging)

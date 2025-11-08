@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using TerminalSessions.Native;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.RemoteDesktop;
 
 namespace TerminalSessions;
 
@@ -12,368 +15,374 @@ namespace TerminalSessions;
 /// </summary>
 public static class WtsNative
 {
-    /// <summary>
-    /// Represents the local terminal server handle
-    /// </summary>
-    public static readonly IntPtr WTS_CURRENT_SERVER_HANDLE = IntPtr.Zero;
+  /// <summary>
+  /// Represents the local terminal server handle
+  /// </summary>
+  public static readonly IntPtr WTS_CURRENT_SERVER_HANDLE = IntPtr.Zero;
 
-    /// <summary>
-    /// Constant representing any session ID
-    /// </summary>
-    public const uint WTS_ANY_SESSION = 0xFFFFFFFF;
+  /// <summary>
+  /// Constant representing any session ID
+  /// </summary>
+  public const uint WTS_ANY_SESSION = 0xFFFFFFFF;
 
-    #region Server Connection Management
+  #region Server Connection Management
 
-    /// <summary>
-    /// Opens a handle to the specified terminal server
-    /// </summary>
-    /// <param name="serverName">The name of the terminal server</param>
-    /// <returns>A handle to the terminal server</returns>
-    /// <exception cref="Win32Exception">Thrown when unable to open server connection</exception>
-    public static IntPtr WTSOpenServerEx(string serverName)
+  /// <summary>
+  /// Opens a handle to the specified terminal server
+  /// </summary>
+  /// <param name="serverName">The name of the terminal server</param>
+  /// <returns>A handle to the terminal server</returns>
+  /// <exception cref="Win32Exception">Thrown when unable to open server connection</exception>
+  public static IntPtr WTSOpenServerEx(string serverName)
+  {
+    unsafe
     {
-      IntPtr handle = WtsInterop.WTSOpenServerExW(serverName);
-      if (handle == IntPtr.Zero)
+      var h = WtsInterop.OpenServer(serverName);
+      if (h.IsNull)
       {
         throw new Win32Exception();
       }
-      return handle;
+      return (IntPtr)h;
     }
+  }
 
-    /// <summary>
-    /// Closes an open handle to a terminal server
-    /// </summary>
-    /// <param name="hServer">The server handle to close</param>
-    public static void WTSCloseServer(IntPtr hServer)
+  /// <summary>
+  /// Closes an open handle to a terminal server
+  /// </summary>
+  /// <param name="hServer">The server handle to close</param>
+  public static void WTSCloseServer(IntPtr hServer)
+  {
+    WtsInterop.CloseServer((HANDLE)hServer);
+  }
+
+  /// <summary>
+  /// Logs off a specified terminal services session
+  /// </summary>
+  /// <param name="hServer">Handle to the terminal server</param>
+  /// <param name="SessionId">The session ID to log off</param>
+  /// <param name="bWait">Whether to wait for the logoff to complete</param>
+  /// <returns>True if successful, false otherwise</returns>
+  public static bool WTSLogoffSession(IntPtr hServer, uint SessionId, bool bWait)
+  {
+    unsafe
     {
-      WtsInterop.WTSCloseServer(hServer);
+      var result = WtsInterop.Logoff((HANDLE)hServer, SessionId, bWait ? new BOOL(1) : new BOOL(0));
+      return result.Value != 0;
     }
+  }
 
-    /// <summary>
-    /// Logs off a specified terminal services session
-    /// </summary>
-    /// <param name="hServer">Handle to the terminal server</param>
-    /// <param name="SessionId">The session ID to log off</param>
-    /// <param name="bWait">Whether to wait for the logoff to complete</param>
-    /// <returns>True if successful, false otherwise</returns>
-    public static bool WTSLogoffSession(IntPtr hServer, uint SessionId, bool bWait)
+  #endregion
+
+  #region Session Enumeration
+
+  /// <summary>
+  /// Enumerates terminal services sessions on the specified server
+  /// </summary>
+  /// <param name="serverHandle">Handle to the terminal server</param>
+  /// <param name="serverName">Name of the server for result population</param>
+  /// <returns>Array of SessionInfo objects</returns>
+  /// <exception cref="Win32Exception">Thrown when enumeration fails</exception>
+  /// <exception cref="InvalidOperationException">Thrown when unexpected API level is returned</exception>
+  public static SessionInfo[] WTSEnumerateSessionsExtra(IntPtr serverHandle, string serverName)
+  {
+    unsafe
     {
-      return WtsInterop.WTSLogoffSession(hServer, SessionId, bWait);
-    }
-
-    #endregion
-
-    #region Session Enumeration
-
-    /// <summary>
-    /// Enumerates terminal services sessions on the specified server
-    /// </summary>
-    /// <param name="serverHandle">Handle to the terminal server</param>
-    /// <param name="serverName">Name of the server for result population</param>
-    /// <returns>Array of SessionInfo objects</returns>
-    /// <exception cref="Win32Exception">Thrown when enumeration fails</exception>
-    /// <exception cref="InvalidOperationException">Thrown when unexpected API level is returned</exception>
-    public static SessionInfo[] WTSEnumerateSessionsExtra(IntPtr serverHandle, string serverName)
-    {
-      int level = 1;
-
-      if (!WtsInterop.WTSEnumerateSessionsExW(serverHandle, ref level, 0, out IntPtr rawInfo, out int count))
+      uint level = 1;
+      if (!WtsInterop.EnumerateSessions((HANDLE)serverHandle, ref level, out WTS_SESSION_INFO_1W* pSessions, out uint uCount))
       {
         throw new Win32Exception();
       }
 
       if (level != 1)
       {
+        // Free any buffer before throwing
+        if (pSessions != null) {
+          WtsInterop.FreeSessions(pSessions, uCount);
+        }
         throw new InvalidOperationException($"Expected level 1 but got level {level}");
       }
 
-      if (rawInfo == IntPtr.Zero)
+      if (pSessions == null)
       {
-        return Array.Empty<SessionInfo>();
+        return [];
       }
 
       try
       {
-        List<SessionInfo> sessions = new List<SessionInfo>(count);
-        int structSize = Marshal.SizeOf<WtsStructures.WTS_SESSION_INFO_1W>();
-        IntPtr currentOffset = rawInfo;
-
+        int count = (int)uCount;
+        List<SessionInfo> sessions = new(count);
         for (int i = 0; i < count; i++)
         {
-          WtsStructures.WTS_SESSION_INFO_1W info = Marshal.PtrToStructure<WtsStructures.WTS_SESSION_INFO_1W>(currentOffset);
-
-          // Skip sessions without a user
-          if (info.pUserName is null)
+          var info = pSessions[i];
+          string user = info.pUserName.ToString();
+          if (string.IsNullOrEmpty(user))
           {
-            currentOffset = IntPtr.Add(currentOffset, structSize);
             continue;
           }
 
-          // Only query client name for remote, connected sessions
+          string sessionName = info.pSessionName.ToString();
+          string domain = info.pDomainName.ToString();
+
           string? clientName = null;
-          if (WtsHelpers.ShouldQueryClientName(info.State, info.pSessionName))
+          if (WtsHelpers.ShouldQueryClientName(info.State.ToPublic(), sessionName))
           {
-            clientName = QuerySessionInfoString(serverHandle, info.SessionId, WTS_INFO_CLASS.WTSClientName);
+            clientName = QuerySessionInfoString(serverHandle, info.SessionId, (int)WTS_INFO_CLASS.WTSClientName);
           }
 
-          sessions.Add(new SessionInfo
-          {
+          sessions.Add(new SessionInfo {
             SessionId = info.SessionId,
-            State = info.State,
-            SessionName = info.pSessionName ?? string.Empty,
-            UserName = info.pUserName,
-            DomainName = info.pDomainName ?? string.Empty,
+            State = info.State.ToPublic(),
+            SessionName = sessionName ?? string.Empty,
+            UserName = user,
+            DomainName = domain ?? string.Empty,
             ComputerName = serverName,
             ClientName = clientName,
           });
-
-          currentOffset = IntPtr.Add(currentOffset, structSize);
         }
-
-        return sessions.ToArray();
+        return [.. sessions];
       }
-      finally
-      {
-        if (rawInfo != IntPtr.Zero)
-        {
-          WtsInterop.WTSFreeMemoryExW((int)WTS_TYPE_CLASS.WTSTypeSessionInfoLevel1, rawInfo, count);
-        }
+      finally {
+        WtsInterop.FreeSessions(pSessions, uCount);
       }
     }
+  }
 
-    /// <summary>
-    /// Enumerates terminal services sessions with extended details including idle time and logon time
-    /// </summary>
-    /// <param name="serverHandle">Handle to the terminal server</param>
-    /// <param name="serverName">Name of the server for result population</param>
-    /// <returns>Array of SessionInfoExtra objects with additional timing information</returns>
-    /// <exception cref="Win32Exception">Thrown when enumeration fails</exception>
-    /// <exception cref="InvalidOperationException">Thrown when unexpected API level is returned</exception>
-    public static SessionInfoExtra[] WTSEnumerateSessionsWithDetails(IntPtr serverHandle, string serverName)
+  /// <summary>
+  /// Enumerates terminal services sessions with extended details including idle time and logon time
+  /// </summary>
+  /// <param name="serverHandle">Handle to the terminal server</param>
+  /// <param name="serverName">Name of the server for result population</param>
+  /// <returns>Array of SessionInfoExtra objects with additional timing information</returns>
+  /// <exception cref="Win32Exception">Thrown when enumeration fails</exception>
+  /// <exception cref="InvalidOperationException">Thrown when unexpected API level is returned</exception>
+  public static SessionInfoExtra[] WTSEnumerateSessionsWithDetails(IntPtr serverHandle, string serverName)
+  {
+    unsafe
     {
-      int level = 1;
+      uint level = 1;
 
-      if (!WtsInterop.WTSEnumerateSessionsExW(serverHandle, ref level, 0, out IntPtr rawInfo, out int count))
+      if (!WtsInterop.EnumerateSessions((HANDLE)serverHandle, ref level, out WTS_SESSION_INFO_1W* pSessions, out uint uCount))
       {
         throw new Win32Exception();
       }
 
       if (level != 1)
       {
+        if (pSessions is not null) {
+          WtsInterop.FreeSessions(pSessions, uCount);
+        }
         throw new InvalidOperationException($"Expected level 1 but got level {level}");
       }
 
-      if (rawInfo == IntPtr.Zero)
+      if (pSessions is null)
       {
-        return Array.Empty<SessionInfoExtra>();
+        return [];
       }
 
       try
       {
+        int count = (int)uCount;
         List<SessionInfoExtra> sessions = new List<SessionInfoExtra>(count);
-        int structSize = Marshal.SizeOf<WtsStructures.WTS_SESSION_INFO_1W>();
-        IntPtr currentOffset = rawInfo;
-
         for (int i = 0; i < count; i++)
         {
-          WtsStructures.WTS_SESSION_INFO_1W info = Marshal.PtrToStructure<WtsStructures.WTS_SESSION_INFO_1W>(currentOffset);
+          var info = pSessions[i];
 
-          // Skip sessions without a user
-          if (info.pUserName is null)
+          string user = info.pUserName.ToString();
+          if (string.IsNullOrEmpty(user))
           {
-            currentOffset = IntPtr.Add(currentOffset, structSize);
             continue;
           }
+
+          string sessionName = info.pSessionName.ToString();
+          string domain = info.pDomainName.ToString();
 
           string? clientName = null;
           TimeSpan? idleTime = null;
           DateTime? logonTime = null;
 
-          // Attempt to get extended session information
           try
           {
             WTSInfo? wtsInfo = WTSQueryWTSINFO(serverHandle, info.SessionId);
             if (wtsInfo is not null)
             {
               logonTime = wtsInfo.LogonTime;
-
-              // Calculate idle time from last input
               if (wtsInfo.LastInputTime.HasValue && wtsInfo.CurrentTime.HasValue)
               {
                 idleTime = wtsInfo.CurrentTime.Value - wtsInfo.LastInputTime.Value;
               }
             }
           }
-          catch
+          catch { }
+
+          if (WtsHelpers.ShouldQueryClientName(info.State.ToPublic(), sessionName))
           {
-            // Silently ignore errors querying extended info (session may have ended)
+            clientName = QuerySessionInfoString(serverHandle, info.SessionId, (int)WTS_INFO_CLASS.WTSClientName);
           }
 
-          // Only query client name for remote, connected sessions
-          if (WtsHelpers.ShouldQueryClientName(info.State, info.pSessionName))
-          {
-            clientName = QuerySessionInfoString(serverHandle, info.SessionId, WTS_INFO_CLASS.WTSClientName);
-          }
-
-          sessions.Add(new SessionInfoExtra
-          {
+          sessions.Add(new SessionInfoExtra {
             SessionId = info.SessionId,
-            State = info.State,
-            SessionName = info.pSessionName ?? string.Empty,
-            UserName = info.pUserName,
-            DomainName = info.pDomainName ?? string.Empty,
+            State = info.State.ToPublic(),
+            SessionName = sessionName ?? string.Empty,
+            UserName = user,
+            DomainName = domain ?? string.Empty,
             ComputerName = serverName,
             ClientName = clientName,
             IdleTime = idleTime,
             LogonTime = logonTime,
           });
-
-          currentOffset = IntPtr.Add(currentOffset, structSize);
         }
-
-        return sessions.ToArray();
+        return [.. sessions];
       }
-      finally
-      {
-        if (rawInfo != IntPtr.Zero)
-        {
-          WtsInterop.WTSFreeMemoryExW((int)WTS_TYPE_CLASS.WTSTypeSessionInfoLevel1, rawInfo, count);
-        }
-      }
+      finally { WtsInterop.FreeSessions(pSessions, uCount); }
     }
+  }
 
-    #endregion
+  #endregion
 
-    #region Session Information Queries
+  #region Session Information Queries
 
-    /// <summary>
-    /// Queries client information for a specific session
-    /// </summary>
-    /// <param name="hServer">Handle to the terminal server</param>
-    /// <param name="sessionId">The session ID to query</param>
-    /// <returns>ClientInfo object with client details</returns>
-    /// <exception cref="Win32Exception">Thrown when query fails</exception>
-    public static ClientInfo WTSQueryClientInfo(IntPtr hServer, uint sessionId)
+  /// <summary>
+  /// Queries client information for a specific session
+  /// </summary>
+  /// <param name="hServer">Handle to the terminal server</param>
+  /// <param name="sessionId">The session ID to query</param>
+  /// <returns>ClientInfo object with client details</returns>
+  /// <exception cref="Win32Exception">Thrown when query fails</exception>
+  public static ClientInfo WTSQueryClientInfo(IntPtr hServer, uint sessionId)
+  {
+    IntPtr buffer = IntPtr.Zero;
+
+    try
     {
-      IntPtr buffer = IntPtr.Zero;
-
-      try
+      unsafe
       {
-        if (!WtsInterop.WTSQuerySessionInformation(hServer, sessionId, WTS_INFO_CLASS.WTSClientInfo, out buffer, out uint bytesReturned))
+        if (!WtsInterop.QuerySessionInfo((HANDLE)hServer, sessionId, WTS_INFO_CLASS.WTSClientInfo, out PWSTR p, out uint bytesReturned))
         {
           throw new Win32Exception();
         }
-
-        WtsStructures.WTSCLIENT rawClient = Marshal.PtrToStructure<WtsStructures.WTSCLIENT>(buffer);
-
-        return new ClientInfo
-        {
-          ClientName = rawClient.ClientName ?? string.Empty,
-          Domain = rawClient.Domain ?? string.Empty,
-          UserName = rawClient.UserName ?? string.Empty,
-          WorkDirectory = rawClient.WorkDirectory ?? string.Empty,
-          InitialProgram = rawClient.InitialProgram ?? string.Empty,
-          EncryptionLevel = rawClient.EncryptionLevel,
-          ClientAddressFamily = (System.Net.Sockets.AddressFamily)rawClient.ClientAddressFamily,
-          ClientAddress = WtsHelpers.ConvertToIPAddress(rawClient.ClientAddress, (System.Net.Sockets.AddressFamily)rawClient.ClientAddressFamily),
-          HRes = rawClient.HRes,
-          VRes = rawClient.VRes,
-          ColorDepth = rawClient.ColorDepth,
-          ClientDirectory = rawClient.ClientDirectory ?? string.Empty,
-          ClientBuildNumber = rawClient.ClientBuildNumber,
-          ClientHardwareId = rawClient.ClientHardwareId,
-          ClientProductId = rawClient.ClientProductId,
-          OutBufCountHost = rawClient.OutBufCountHost,
-          OutBufCountClient = rawClient.OutBufCountClient,
-          OutBufLength = rawClient.OutBufLength,
-          DeviceId = rawClient.DeviceId ?? string.Empty,
-        };
+        buffer = (IntPtr)p.Value;
       }
-      finally
+
+      WTSCLIENTW rawClient = Marshal.PtrToStructure<WTSCLIENTW>(buffer);
+
+      return new ClientInfo {
+        ClientName = rawClient.ClientName.ToString() ?? string.Empty,
+        Domain = rawClient.Domain.ToString() ?? string.Empty,
+        UserName = rawClient.UserName.ToString() ?? string.Empty,
+        WorkDirectory = rawClient.WorkDirectory.ToString() ?? string.Empty,
+        InitialProgram = rawClient.InitialProgram.ToString() ?? string.Empty,
+        EncryptionLevel = rawClient.EncryptionLevel,
+        ClientAddressFamily = (AddressFamily)rawClient.ClientAddressFamily,
+        ClientAddress = WtsHelpers.ConvertToIPAddress(rawClient.ClientAddress.ToArray(rawClient.ClientAddress.Length), (AddressFamily)rawClient.ClientAddressFamily),
+        HRes = rawClient.HRes,
+        VRes = rawClient.VRes,
+        ColorDepth = rawClient.ColorDepth,
+        ClientDirectory = rawClient.ClientDirectory.ToString() ?? string.Empty,
+        ClientBuildNumber = rawClient.ClientBuildNumber,
+        ClientHardwareId = rawClient.ClientHardwareId,
+        ClientProductId = rawClient.ClientProductId,
+        OutBufCountHost = rawClient.OutBufCountHost,
+        OutBufCountClient = rawClient.OutBufCountClient,
+        OutBufLength = rawClient.OutBufLength,
+        DeviceId = rawClient.DeviceId.ToString() ?? string.Empty,
+      };
+    }
+    finally
+    {
+      if (buffer != IntPtr.Zero)
       {
-        if (buffer != IntPtr.Zero)
-        {
-          WtsInterop.WTSFreeMemory(buffer);
+        unsafe {
+          WtsInterop.Free((void*)buffer);
         }
       }
     }
+  }
 
-    /// <summary>
-    /// Queries detailed session information including timing and statistics
-    /// </summary>
-    /// <param name="hServer">Handle to the terminal server</param>
-    /// <param name="sessionId">The session ID to query</param>
-    /// <returns>WTSInfo object with detailed session information, or null if query fails</returns>
-    public static WTSInfo? WTSQueryWTSINFO(IntPtr hServer, uint sessionId)
+  /// <summary>
+  /// Queries detailed session information including timing and statistics
+  /// </summary>
+  /// <param name="hServer">Handle to the terminal server</param>
+  /// <param name="sessionId">The session ID to query</param>
+  /// <returns>WTSInfo object with detailed session information, or null if query fails</returns>
+  public static WTSInfo? WTSQueryWTSINFO(IntPtr hServer, uint sessionId)
+  {
+    IntPtr buffer = IntPtr.Zero;
+
+    try
     {
-      IntPtr buffer = IntPtr.Zero;
-
-      try
+      unsafe
       {
-        if (!WtsInterop.WTSQuerySessionInformation(hServer, sessionId, WTS_INFO_CLASS.WTSSessionInfo, out buffer, out uint bytesReturned))
+        if (!WtsInterop.QuerySessionInfo((HANDLE)hServer, sessionId, WTS_INFO_CLASS.WTSSessionInfo, out PWSTR p, out uint bytesReturned))
         {
           throw new Win32Exception();
         }
-
-        WtsStructures.WTSINFOW rawInfo = Marshal.PtrToStructure<WtsStructures.WTSINFOW>(buffer);
-
-        return new WTSInfo
-        {
-          State = rawInfo.State,
-          SessionId = rawInfo.SessionId,
-          IncomingBytes = rawInfo.IncomingBytes,
-          OutgoingBytes = rawInfo.OutgoingBytes,
-          IncomingFrames = rawInfo.IncomingFrames,
-          OutgoingFrames = rawInfo.OutgoingFrames,
-          IncomingCompressedBytes = rawInfo.IncomingCompressedBytes,
-          OutgoingCompressedBy = rawInfo.OutgoingCompressedBytes,
-          WinStationName = rawInfo.WinStationName,
-          Domain = rawInfo.Domain,
-          UserName = rawInfo.UserName,
-          ConnectTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.ConnectTimeUTC),
-          DisconnectTime = rawInfo.State == WtsConnectState.Disconnected ? WtsHelpers.ConvertFileTimeToLocal(rawInfo.DisconnectTimeUTC) : null,
-          LastInputTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.LastInputTimeUTC),
-          LogonTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.LogonTimeUTC),
-          CurrentTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.CurrentTimeUTC),
-        };
+        buffer = (IntPtr)p.Value;
       }
-      finally
+      WTSINFOW rawInfo = Marshal.PtrToStructure<WTSINFOW>(buffer);
+
+      return new WTSInfo {
+        State = rawInfo.State.ToPublic(),
+        SessionId = rawInfo.SessionId,
+        IncomingBytes = rawInfo.IncomingBytes,
+        OutgoingBytes = rawInfo.OutgoingBytes,
+        IncomingFrames = rawInfo.IncomingFrames,
+        OutgoingFrames = rawInfo.OutgoingFrames,
+        IncomingCompressedBytes = rawInfo.IncomingCompressedBytes,
+        OutgoingCompressedBy = rawInfo.OutgoingCompressedBytes,
+        WinStationName = rawInfo.WinStationName.ToString(),
+        Domain = rawInfo.Domain.ToString(),
+        UserName = rawInfo.UserName.ToString(),
+        ConnectTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.ConnectTime),
+        DisconnectTime = rawInfo.State == WTS_CONNECTSTATE_CLASS.WTSDisconnected ? WtsHelpers.ConvertFileTimeToLocal(rawInfo.DisconnectTime) : null,
+        LastInputTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.LastInputTime),
+        LogonTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.LogonTime),
+        CurrentTime = WtsHelpers.ConvertFileTimeToLocal(rawInfo.CurrentTime),
+      };
+    }
+    finally
+    {
+      if (buffer != IntPtr.Zero)
       {
-        if (buffer != IntPtr.Zero)
+        unsafe
         {
-          WtsInterop.WTSFreeMemory(buffer);
+          WtsInterop.Free((void*)buffer);
         }
       }
     }
+  }
 
-    /// <summary>
-    /// Queries a string value for a specific session information class
-    /// </summary>
-    /// <param name="hServer">Handle to the terminal server</param>
-    /// <param name="sessionId">The session ID to query</param>
-    /// <param name="wtsInfoClass">The information class to query</param>
-    /// <returns>The string value, or null if query fails</returns>
-    public static string? QuerySessionInfoString(IntPtr hServer, uint sessionId, WTS_INFO_CLASS wtsInfoClass)
+  /// <summary>
+  /// Queries a string value for a specific session information class
+  /// </summary>
+  /// <param name="hServer">Handle to the terminal server</param>
+  /// <param name="sessionId">The session ID to query</param>
+  /// <param name="wtsInfoClass">The information class to query</param>
+  /// <returns>The string value, or null if query fails</returns>
+  public static string? QuerySessionInfoString(IntPtr hServer, uint sessionId, int wtsInfoClass)
+  {
+    IntPtr buffer = IntPtr.Zero;
+    try
     {
-      IntPtr buffer = IntPtr.Zero;
-
-      try
+      unsafe
       {
-        if (!WtsInterop.WTSQuerySessionInformation(hServer, sessionId, wtsInfoClass, out buffer, out uint bytesReturned))
+        if (!WtsInterop.QuerySessionInfo((HANDLE)hServer, sessionId, (WTS_INFO_CLASS)wtsInfoClass, out PWSTR p, out uint bytesReturned))
         {
           return null;
         }
-
-        return Marshal.PtrToStringUni(buffer);
+        buffer = (IntPtr)p.Value;
       }
-      finally
+      return Marshal.PtrToStringUni(buffer);
+    }
+    finally
+    {
+      if (buffer != IntPtr.Zero)
       {
-        if (buffer != IntPtr.Zero)
+        unsafe
         {
-          WtsInterop.WTSFreeMemory(buffer);
+          WtsInterop.Free((void*)buffer);
         }
       }
     }
-
-    #endregion
+  }
+  #endregion
 }
