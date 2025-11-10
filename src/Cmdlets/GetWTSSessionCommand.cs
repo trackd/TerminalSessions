@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Management.Automation;
 
 namespace TerminalSessions.Cmdlets;
@@ -22,7 +23,14 @@ public class GetWTSSessionCommand : PSCmdlet
   /// <para type="description">If set, retrieves additional details about each session such as idle time and logon time.</para>
   /// </summary>
   [Parameter(ParameterSetName = "SessionInfoExtra")]
+  [Alias("Details")]
   public SwitchParameter Detailed { get; set; }
+
+  /// <summary>
+  /// <para type="description">If set, filters out disconnected sessions.</para>
+  /// </summary>
+  [Parameter()]
+  public SwitchParameter OnlineOnly { get; set; }
 
   protected override void ProcessRecord()
   {
@@ -32,15 +40,25 @@ public class GetWTSSessionCommand : PSCmdlet
       try
       {
         serverInfo = WtsNative.WTSOpenServerEx(name);
+
+        // SessionInfoExtra inherits from SessionInfo, so this works for both
+        SessionInfo[] sessions = null!;
         if (Detailed.IsPresent)
         {
-          var Sessions = WtsNative.WTSEnumerateSessionsWithDetails(serverInfo, name);
-          WriteObject(Sessions, true);
+          sessions = WtsNative.WTSEnumerateSessionsWithDetails(serverInfo, name);
         }
         else
         {
-          var Sessions = WtsNative.WTSEnumerateSessionsExtra(serverInfo, name);
-          WriteObject(Sessions, true);
+          sessions = WtsNative.WTSEnumerateSessionsExtra(serverInfo, name);
+        }
+
+        if (sessions is not null)
+        {
+          if (OnlineOnly.IsPresent)
+          {
+            sessions = [.. sessions.Where(s => s.State != WtsConnectState.Disconnected)];
+          }
+          WriteObject(sessions, true);
         }
       }
       catch (PipelineStoppedException)

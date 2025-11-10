@@ -13,7 +13,7 @@ Enumerates sessions on Windows Terminal Services hosts.
 
 ## SYNTAX
 
-```
+```powershell
 Get-WTSSession [[-ComputerName] <String[]>] [-Detailed] [<CommonParameters>]
 ```
 
@@ -84,6 +84,22 @@ Accept wildcard characters: False
 ### -Detailed
 
 When specified, retrieves additional session details including idle time and logon time. This provides more comprehensive information about each session but may take slightly longer to execute.  
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -OnlineOnly
+
+filters out disconnected sessions  
 
 ```yaml
 Type: SwitchParameter

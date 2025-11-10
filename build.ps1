@@ -179,5 +179,5 @@ Get-ChildItem -Path $OutputPath -Recurse | ForEach-Object {
     }
 }
 
-Write-Host "\nTo test the module, run:" -ForegroundColor Cyan
+Write-Host "`nTo test the module, run:" -ForegroundColor Cyan
 Write-Host "    Import-Module $OutputPath\TerminalSessions.psd1" -ForegroundColor White

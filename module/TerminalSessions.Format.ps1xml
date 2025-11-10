@@ -21,11 +21,14 @@
           <TableColumnHeader>
             <Label>State</Label>
           </TableColumnHeader>
-          <TableColumnHeader>
+          <!-- <TableColumnHeader>
             <Label>DomainName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>UserName</Label>
+          </TableColumnHeader> -->
+          <TableColumnHeader>
+            <Label>User</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>ClientName</Label>
@@ -76,11 +79,19 @@
                 }
                 </ScriptBlock>
               </TableColumnItem>
-              <TableColumnItem>
+              <!-- <TableColumnItem>
                 <PropertyName>DomainName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>UserName</PropertyName>
+              </TableColumnItem> -->
+              <TableColumnItem>
+              <ScriptBlock>
+                if ($_.DomainName) {
+                  return ('{0}\{1}' -f $_.DomainName, $_.UserName)
+                }
+                $_.UserName
+              </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>ClientName</PropertyName>
@@ -91,36 +102,33 @@
                     $TimeSpan = $_.IdleTime
                       if ($PSStyle) {
                           $colorMap = @{
-                            Critical = $PSStyle.Formatting.Error
-                            Error = $PSStyle.Formatting.ErrorAccent
-                            Warning = $PSStyle.Formatting.Warning
-                            Good = $PSStyle.Formatting.FormatAccent
+                            days = $PSStyle.Formatting.Error
+                            hours = $PSStyle.Formatting.Warning
+                            minutes = $PSStyle.Formatting.FeedbackText
+                            active = $PSStyle.Foreground.Green
                             Reset = $PSStyle.Reset
                           }
                       }
                       else {
                           $colorMap = @{
-                            Critical = "$([char]27)[91m"
-                            Error = "$([char]27)[36;1m"
-                            Warning = "$([char]27)[93m"
-                            Good = "$([char]27)[92m"
+                            days = "$([char]27)[31;1m"
+                            hours = "$([char]27)[33;1m"
+                            minutes = "$([char]27)[96m"
+                            active = "$([char]27)[32m"
                             Reset = "$([char]27)[0m"
                           }
                       }
                       if ($TimeSpan.TotalDays -ge 1) {
-                        '{0}{1:0}d{2:0}h{3}' -f $colorMap.Critical, $TimeSpan.TotalDays, $TimeSpan.Hours, $colorMap.Reset
+                        '{0}{1:0}d{2:0}h{3}' -f $colorMap.days, $TimeSpan.TotalDays, $TimeSpan.Hours, $colorMap.Reset
                       }
                       elseif ($TimeSpan.TotalHours -ge 1) {
-                        '{0}{1:0}h{2:0}m{3}' -f $colorMap.Error, $TimeSpan.TotalHours, $TimeSpan.Minutes, $colorMap.Reset
+                        '{0}{1:0}h{2:0}m{3}' -f $colorMap.hours, $TimeSpan.TotalHours, $TimeSpan.Minutes, $colorMap.Reset
                       }
                       elseif ($TimeSpan.TotalMinutes -ge 1) {
-                        '{0}{1:0}m{2:0}s{3}' -f $colorMap.Warning, $TimeSpan.TotalMinutes, $TimeSpan.Seconds, $colorMap.Reset
-                      }
-                      elseif ($TimeSpan.TotalMilliseconds -lt 100) {
-                        '{0:0}ms' -f $TimeSpan.TotalMilliseconds.ToString('0')
+                        '{0}{1:0}m{2:0}s{3}' -f $colorMap.minutes, $TimeSpan.TotalMinutes, $TimeSpan.Seconds, $colorMap.Reset
                       }
                       else {
-                        '{0}{1:0}s{2}' -f $colorMap.Good, $TimeSpan.TotalSeconds.ToString('0.0'), $colorMap.Reset
+                        '{0}{1:0}s{2}' -f $colorMap.active, $TimeSpan.TotalSeconds.ToString('0.0'), $colorMap.Reset
                       }
                   }
               </ScriptBlock>
@@ -157,11 +165,14 @@
           <TableColumnHeader>
             <Label>State</Label>
           </TableColumnHeader>
-          <TableColumnHeader>
+          <!-- <TableColumnHeader>
             <Label>DomainName</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>UserName</Label>
+          </TableColumnHeader> -->
+          <TableColumnHeader>
+            <Label>User</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>ClientName</Label>
@@ -206,11 +217,19 @@
                 }
                 </ScriptBlock>
               </TableColumnItem>
-              <TableColumnItem>
+              <!-- <TableColumnItem>
                 <PropertyName>DomainName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>UserName</PropertyName>
+              </TableColumnItem> -->
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.DomainName) {
+                    return ('{0}\{1}' -f $_.DomainName, $_.UserName)
+                  }
+                  $_.UserName
+              </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>ClientName</PropertyName>
@@ -237,11 +256,14 @@
           <TableColumnHeader>
             <Label>WinStationName</Label>
           </TableColumnHeader>
-          <TableColumnHeader>
+          <!-- <TableColumnHeader>
             <Label>Domain</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>UserName</Label>
+          </TableColumnHeader> -->
+          <TableColumnHeader>
+            <Label>User</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>ConnectTime</Label>
@@ -292,11 +314,19 @@
               <TableColumnItem>
                 <PropertyName>WinStationName</PropertyName>
               </TableColumnItem>
-              <TableColumnItem>
+              <!-- <TableColumnItem>
                 <PropertyName>Domain</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>UserName</PropertyName>
+              </TableColumnItem> -->
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Domain) {
+                    return ('{0}\{1}' -f $_.Domain, $_.UserName)
+                  }
+                  $_.UserName
+              </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>
@@ -342,11 +372,14 @@
           <TableColumnHeader>
             <Label>ClientName</Label>
           </TableColumnHeader>
-          <TableColumnHeader>
+          <!-- <TableColumnHeader>
             <Label>Domain</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>UserName</Label>
+          </TableColumnHeader> -->
+          <TableColumnHeader>
+            <Label>User</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>EncryptionLevel</Label>
@@ -373,11 +406,19 @@
               <TableColumnItem>
                 <PropertyName>ClientName</PropertyName>
               </TableColumnItem>
-              <TableColumnItem>
+              <!-- <TableColumnItem>
                 <PropertyName>Domain</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>UserName</PropertyName>
+              </TableColumnItem> -->
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Domain) {
+                    return ('{0}\{1}' -f $_.Domain, $_.UserName)
+                  }
+                  $_.UserName
+              </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>EncryptionLevel</PropertyName>

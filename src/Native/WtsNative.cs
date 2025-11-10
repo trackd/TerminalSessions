@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Net.Sockets;
 using TerminalSessions.Native;
 
 namespace TerminalSessions;
@@ -89,7 +90,7 @@ public static class WtsNative
 
       if (rawInfo == IntPtr.Zero)
       {
-        return Array.Empty<SessionInfo>();
+        return [];
       }
 
       try
@@ -130,7 +131,7 @@ public static class WtsNative
           currentOffset = IntPtr.Add(currentOffset, structSize);
         }
 
-        return sessions.ToArray();
+        return [.. sessions];
       }
       finally
       {
@@ -165,7 +166,7 @@ public static class WtsNative
 
       if (rawInfo == IntPtr.Zero)
       {
-        return Array.Empty<SessionInfoExtra>();
+        return [];
       }
 
       try
@@ -231,7 +232,7 @@ public static class WtsNative
           currentOffset = IntPtr.Add(currentOffset, structSize);
         }
 
-        return sessions.ToArray();
+        return [.. sessions];
       }
       finally
       {
@@ -274,8 +275,8 @@ public static class WtsNative
           WorkDirectory = rawClient.WorkDirectory ?? string.Empty,
           InitialProgram = rawClient.InitialProgram ?? string.Empty,
           EncryptionLevel = rawClient.EncryptionLevel,
-          ClientAddressFamily = (System.Net.Sockets.AddressFamily)rawClient.ClientAddressFamily,
-          ClientAddress = WtsHelpers.ConvertToIPAddress(rawClient.ClientAddress, (System.Net.Sockets.AddressFamily)rawClient.ClientAddressFamily),
+          ClientAddressFamily = (AddressFamily)rawClient.ClientAddressFamily,
+          ClientAddress = WtsHelpers.ConvertToIPAddress(rawClient.ClientAddress, (AddressFamily)rawClient.ClientAddressFamily),
           HRes = rawClient.HRes,
           VRes = rawClient.VRes,
           ColorDepth = rawClient.ColorDepth,
@@ -356,14 +357,12 @@ public static class WtsNative
     public static string? QuerySessionInfoString(IntPtr hServer, uint sessionId, WTS_INFO_CLASS wtsInfoClass)
     {
       IntPtr buffer = IntPtr.Zero;
-
       try
       {
         if (!WtsInterop.WTSQuerySessionInformation(hServer, sessionId, wtsInfoClass, out buffer, out uint bytesReturned))
         {
           return null;
         }
-
         return Marshal.PtrToStringUni(buffer);
       }
       finally
@@ -374,6 +373,5 @@ public static class WtsNative
         }
       }
     }
-
     #endregion
 }
