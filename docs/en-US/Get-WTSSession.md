@@ -1,7 +1,7 @@
 ﻿---
 external help file: TerminalSessions.dll-Help.xml
 Module Name: TerminalSessions
-online version:
+online version: https://github.com/trackd/TerminalSessions/blob/main/docs/en-US/Get-WTSSession.md
 schema: 2.0.0
 ---
 
@@ -77,7 +77,7 @@ Aliases:
 Required: False
 Position: 0
 Default value: Local computer name
-Accept pipeline input: True (ByPropertyName, ByValue)
+Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
@@ -113,10 +113,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### CommonParameters
-
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).  
-
 ## INPUTS
 
 ### System.String[]
@@ -125,11 +121,11 @@ You can pipe computer names to this cmdlet.
 
 ## OUTPUTS
 
-### PSWTSSession.SessionInfo
+### TerminalSessions.SessionInfo
 
 Returns SessionInfo objects by default, containing session ID, state, session name, user name, domain name, computer name, and client name.  
 
-### PSWTSSession.SessionInfoExtra
+### TerminalSessions.SessionInfoExtra
 
 Returns SessionInfoExtra objects when -Detailed is specified, containing all SessionInfo properties plus idle time and logon time.  
 

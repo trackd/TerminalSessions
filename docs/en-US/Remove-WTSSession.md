@@ -1,7 +1,7 @@
 ﻿---
 external help file: TerminalSessions.dll-Help.xml
 Module Name: TerminalSessions
-online version:
+online version: https://github.com/trackd/TerminalSessions/blob/main/docs/en-US/Remove-WTSSession.md
 schema: 2.0.0
 ---
 
@@ -13,7 +13,7 @@ Removes (logs off) a session from a Windows host.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-WTSSession [-SessionInfo] <SessionInfo> [-WaitForLogoff] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -78,7 +78,39 @@ Aliases:
 Required: True
 Position: 0
 Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -ComputerName
+
+ComputerName to connect to (requires SessionId)  
+
+```yaml
+Type: String
+Parameter Sets: ByManual
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -SessionId
+
+Session to logoff.  
+
+```yaml
+Type: uint
+Parameter Sets: ByManual
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 
@@ -98,45 +130,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -WhatIf
-
-Shows what would happen if the cmdlet runs. The cmdlet is not run.  
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet. By default, this cmdlet will prompt for confirmation due to the high impact of logging off user sessions.  
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### CommonParameters
-
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).  
-
 ## INPUTS
 
-### PSWTSSession.SessionInfo
+### TerminalSessions.SessionInfo
 
 You can pipe SessionInfo objects from Get-WTSSession to this cmdlet.  
 

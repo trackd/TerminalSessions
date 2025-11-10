@@ -4,7 +4,7 @@
 
 @{
     RootModule             = 'TerminalSessions.dll'
-    ModuleVersion          = '0.0.1'
+    ModuleVersion          = '0.0.2'
     CompatiblePSEditions   = @('Desktop', 'Core')
     PowerShellVersion      = '5.1'
     DotNetFrameworkVersion = '4.7.2'
@@ -26,6 +26,8 @@
         'Get-WTSInfo'
         'Get-WTSClientInfo'
         'Remove-WTSSession'
+        'Send-WTSMessage'
+        'Disconnect-WTSSession'
     )
     VariablesToExport      = @()
     AliasesToExport        = @(

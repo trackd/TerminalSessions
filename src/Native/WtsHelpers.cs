@@ -10,12 +10,13 @@ namespace TerminalSessions.Native;
 internal static class WtsHelpers
 {
   /// <summary>
-  /// Converts a WTS client address array to an IPAddress object
+  /// Converts a WTS client address array to an <see cref="IPAddress"/> object.
   /// </summary>
-  /// <param name="clientAddress">The raw client address data from WTS API</param>
-  /// <param name="addressFamily">The address family (IPv4 or IPv6)</param>
-  /// <returns>An IPAddress object, or null if conversion fails</returns>
+  /// <param name="clientAddress">The raw client address data from the WTS API.</param>
+  /// <param name="addressFamily">The address family (<see cref="AddressFamily.InterNetwork"/> for IPv4, <see cref="AddressFamily.InterNetworkV6"/> for IPv6).</param>
+  /// <returns>An <see cref="IPAddress"/> object, or <c>null</c> if conversion fails.</returns>
   internal static IPAddress? ConvertToIPAddress(ushort[]? clientAddress, AddressFamily addressFamily)
+
   {
     if (clientAddress is null || clientAddress.Length == 0)
     {
@@ -65,10 +66,10 @@ internal static class WtsHelpers
   }
 
   /// <summary>
-  /// Converts a Windows FILETIME (UTC) to a local DateTime
+  /// Converts a Windows FILETIME (UTC) value to a local <see cref="DateTime"/>.
   /// </summary>
-  /// <param name="fileTime">The FILETIME value in UTC</param>
-  /// <returns>A nullable DateTime in local time, or null if conversion fails</returns>
+  /// <param name="fileTime">The FILETIME value in UTC, as a <see cref="long"/>.</param>
+  /// <returns>A <see cref="DateTime"/> in local time, or <c>null</c> if conversion fails or the value is zero.</returns>
   internal static DateTime? ConvertFileTimeToLocal(long fileTime)
   {
     // Zero indicates no valid time
@@ -76,7 +77,6 @@ internal static class WtsHelpers
     {
       return null;
     }
-
     try
     {
 
@@ -85,7 +85,6 @@ internal static class WtsHelpers
 
       TimeSpan currentOffset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
       DateTime localTime = utcTime.Add(currentOffset);
-
       return localTime;
     }
     catch
@@ -96,12 +95,12 @@ internal static class WtsHelpers
   }
 
   /// <summary>
-  /// Determines if a session should have client name queried
-  /// Console sessions and disconnected sessions typically don't have remote clients
+  /// Determines if a session should have its client name queried.
+  /// Console sessions and disconnected sessions typically do not have remote clients.
   /// </summary>
-  /// <param name="state">The connection state of the session</param>
-  /// <param name="sessionName">The name of the session</param>
-  /// <returns>True if client name should be queried</returns>
+  /// <param name="state">The connection state of the session.</param>
+  /// <param name="sessionName">The name of the session.</param>
+  /// <returns><c>true</c> if the client name should be queried; otherwise, <c>false</c>.</returns>
   internal static bool ShouldQueryClientName(WtsConnectState state, string sessionName)
   {
     return state != WtsConnectState.Disconnected && sessionName != "console";

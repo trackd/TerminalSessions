@@ -31,3 +31,11 @@ Enumerates all sessions on one or more Windows Terminal Services hosts, returnin
 ### [Remove-WTSSession](Remove-WTSSession.md)
 
 Logs off a user session from a Windows Terminal Services host with optional confirmation prompts and wait behavior.  
+
+### [Disconnect-WTSSession](Disconnect-WTSSession.md)
+
+Disconnects a user session from a Windows Terminal Services host, leaving the user logged in but inactive on the client.  
+
+### [Send-WTSMessage](Send-WTSMessage.md)
+
+Sends a message to a Windows Terminal Services session.  

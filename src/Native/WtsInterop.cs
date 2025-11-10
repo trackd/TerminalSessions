@@ -74,4 +74,30 @@ internal static class WtsInterop
         WTS_INFO_CLASS wtsInfoClass,
         out IntPtr ppBuffer,
         out uint pBytesReturned);
+
+    /// <summary>
+    /// Sends a message box to a specified session
+    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtssendmessagew
+    /// </summary>
+    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
+    internal static extern bool WTSSendMessage(
+        IntPtr hServer,
+        uint SessionId,
+        string pTitle,
+        int TitleLength,
+        string pMessage,
+        int MessageLength,
+        MessageBoxType style,
+        int Timeout,
+        out MessageBoxResult response,
+        bool bWait);
+    /// <summary>
+    /// Disconnects a specified session
+    /// https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsdisconnectsession
+    /// </summary>
+    [DllImport(Wtsapi32, CharSet = CharSet.Unicode, SetLastError = true)]
+    internal static extern bool WTSDisconnectSession(
+        IntPtr hServer,
+        uint SessionId,
+        bool bWait);
 }

@@ -17,6 +17,7 @@ public class GetWTSSessionCommand : PSCmdlet
   /// <para type="description">A list of hosts to query the sessions for. Omit or set to an empty array to check the local host.</para>
   /// </summary>
   [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0)]
+  [ValidateNotNullOrEmpty]
   public string[] ComputerName { get; set; } = [Environment.MachineName];
 
   /// <summary>

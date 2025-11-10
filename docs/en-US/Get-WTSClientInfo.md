@@ -1,7 +1,7 @@
 ﻿---
 external help file: TerminalSessions.dll-Help.xml
 Module Name: TerminalSessions
-online version:
+online version: https://github.com/trackd/TerminalSessions/blob/main/docs/en-US/Get-WTSClientInfo.md
 schema: 2.0.0
 ---
 
@@ -17,7 +17,7 @@ The Get-WTSClientInfo cmdlet retrieves detailed client connection information fo
 
 ## SYNTAX
 
-```
+```powershell
 Get-WTSClientInfo [-SessionInfo] <SessionInfo> [<CommonParameters>]
 ```
 
@@ -72,29 +72,57 @@ Specifies the session information object to query. This parameter accepts Sessio
 
 ```yaml
 Type: SessionInfo
-Parameter Sets: (All)
+Parameter Sets: BySessionInfo
 Aliases:
 
 Required: True
 Position: 0
 Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
+Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### CommonParameters
+### -ComputerName
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).  
+ComputerName to connect to (requires SessionId)  
+
+```yaml
+Type: String
+Parameter Sets: ByManual
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -SessionId
+
+SessionId to get information about.  
+
+```yaml
+Type: uint
+Parameter Sets: ByManual
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
 
 ## INPUTS
 
-### PSWTSSession.SessionInfo
+### TerminalSessions.SessionInfo
 
 You can pipe SessionInfo objects from Get-WTSSession to this cmdlet.  
 
 ## OUTPUTS
 
-### PSWTSSession.ClientInfo
+### TerminalSessions.ClientInfo
 
 Returns ClientInfo objects containing detailed client information including:
 
