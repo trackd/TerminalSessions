@@ -22,16 +22,27 @@
     )
     FunctionsToExport      = @()
     CmdletsToExport        = @(
+        'Get-TerminalSession'
+        'Get-TerminalInfo'
+        'Get-TerminalClientInfo'
+        'Remove-TerminalSession'
+        'Send-TerminalMessage'
+        'Disconnect-TerminalSession'
+    )
+    VariablesToExport      = @()
+    AliasesToExport        = @(
         'Get-WTSSession'
         'Get-WTSInfo'
         'Get-WTSClientInfo'
         'Remove-WTSSession'
         'Send-WTSMessage'
         'Disconnect-WTSSession'
-    )
-    VariablesToExport      = @()
-    AliasesToExport        = @(
-        'Get-TerminalSession'
+        'gts'
+        'gtc'
+        'gti'
+        'rts'
+        'smsg'
+        'dts'
     )
     # DscResourcesToExport = @()
     # ModuleList = @()

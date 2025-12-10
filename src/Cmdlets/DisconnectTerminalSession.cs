@@ -6,8 +6,9 @@ namespace TerminalSessions.Cmdlets;
 /// <summary>
 /// Disconnects a WTS session on a Windows host.
 /// </summary>
-[Cmdlet(VerbsCommunications.Disconnect, "WTSSession", DefaultParameterSetName = "BySessionInfo")]
-public class DisconnectWTSSessionCommand : PSCmdlet
+[Cmdlet(VerbsCommunications.Disconnect, "TerminalSession", DefaultParameterSetName = "BySessionInfo")]
+[Alias("Disconnect-WTSSession", "dts")]
+public class DisconnectTerminalSession : PSCmdlet
 {
   /// <summary>
   /// The session info object returned from Get-WTSSession.
@@ -66,7 +67,7 @@ public class DisconnectWTSSessionCommand : PSCmdlet
         {
           WriteError(new ErrorRecord(
             ex,
-            "DisconnectWTSSessionError",
+            "DisconnectTerminalSession",
             ErrorCategory.OperationStopped,
             session));
         }

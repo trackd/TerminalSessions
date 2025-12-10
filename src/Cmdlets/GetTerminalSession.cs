@@ -7,11 +7,11 @@ namespace TerminalSessions.Cmdlets;
 /// <summary>
 /// <para type="description">Enumerates all the sessions available on Windows hosts through the WTSEnumerateSessionsExW API.</para>
 /// </summary>
-[Cmdlet(VerbsCommon.Get, "WTSSession", DefaultParameterSetName = "SessionInfo")]
-[Alias("Get-TerminalSession")]
+[Cmdlet(VerbsCommon.Get, "TerminalSession", DefaultParameterSetName = "SessionInfo")]
+[Alias("Get-WTSSession", "gts")]
 [OutputType(typeof(SessionInfoExtra), ParameterSetName = new[] { "SessionInfoExtra" })]
 [OutputType(typeof(SessionInfo))]
-public class GetWTSSessionCommand : PSCmdlet
+public class GetTerminalSession : PSCmdlet
 {
   /// <summary>
   /// <para type="description">A list of hosts to query the sessions for. Omit or set to an empty array to check the local host.</para>
@@ -72,7 +72,7 @@ public class GetWTSSessionCommand : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "WTSSessionError",
+          "GetTerminalSession",
           ErrorCategory.InvalidOperation,
           name));
       }

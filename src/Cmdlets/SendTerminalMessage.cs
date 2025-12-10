@@ -5,8 +5,9 @@ using TerminalSessions.Native;
 
 namespace TerminalSessions.Cmdlets;
 
-[Cmdlet(VerbsCommunications.Send, "WTSMessage", DefaultParameterSetName = "SessionInfo")]
-public sealed class SendWTSMessageCommand : PSCmdlet
+[Cmdlet(VerbsCommunications.Send, "TerminalMessage", DefaultParameterSetName = "SessionInfo")]
+[Alias("Send-WTSMessage", "smsg")]
+public sealed class SendTerminalMessage : PSCmdlet
 {
     [Parameter(
         ValueFromPipeline = true,
@@ -90,7 +91,7 @@ public sealed class SendWTSMessageCommand : PSCmdlet
         {
             WriteError(new ErrorRecord(
                 ex,
-                "SendMessageException",
+                "SendTerminalMessage",
                 ErrorCategory.OperationStopped,
                 this));
         }

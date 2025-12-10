@@ -7,9 +7,10 @@ namespace TerminalSessions.Cmdlets;
 /// <para type="synopsis">Retrieves WTS information for a session on a Windows host.</para>
 /// <para type="description">Retrieves WTS information for a session on a Windows host through the WTSQueryWTSINFO API.</para>
 /// </summary>
-[Cmdlet(VerbsCommon.Get, "WTSInfo", DefaultParameterSetName = "BySessionInfo")]
+[Cmdlet(VerbsCommon.Get, "TerminalInfo", DefaultParameterSetName = "BySessionInfo")]
+[Alias("Get-WTSInfo", "gti")]
 [OutputType(typeof(WTSInfo))]
-public class GetWTSInfoCommand : PSCmdlet
+public class GetTerminalInfo : PSCmdlet
 {
   /// <summary>
   /// <para type="description">The session info object returned from Get-WTSSession.</para>
@@ -67,7 +68,7 @@ public class GetWTSInfoCommand : PSCmdlet
           {
             WriteError(new ErrorRecord(
               ex,
-              "WTSInfoError",
+              "GetTerminalInfo",
               ErrorCategory.InvalidOperation,
               session));
           }
@@ -77,7 +78,7 @@ public class GetWTSInfoCommand : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "WTSInfoServerError",
+          "GetTerminalInfo",
           ErrorCategory.InvalidOperation,
           group.Key));
       }

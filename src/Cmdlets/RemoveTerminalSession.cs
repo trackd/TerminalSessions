@@ -8,12 +8,13 @@ namespace TerminalSessions.Cmdlets;
 /// <para type="description">Removes a session from a Windows host through the WTSLogoffSession API.</para>
 /// </summary>
 [Cmdlet(
-  VerbsCommon.Remove, "WTSSession",
+  VerbsCommon.Remove, "TerminalSession",
   SupportsShouldProcess = true,
   ConfirmImpact = ConfirmImpact.High,
   DefaultParameterSetName = "BySessionInfo"
 )]
-public class RemoveWTSSessionCommand : PSCmdlet
+[Alias("Remove-WTSSession", "rts")]
+public class RemoveTerminalSession : PSCmdlet
 {
   /// <summary>
   /// <para type="description">The session info object returned from Get-WTSSession.</para>
@@ -86,7 +87,7 @@ public class RemoveWTSSessionCommand : PSCmdlet
             {
               WriteError(new ErrorRecord(
                 ex,
-                "WTSLogoffError",
+                "RemoveTerminalSession",
                 ErrorCategory.InvalidOperation,
                 session));
             }
@@ -97,7 +98,7 @@ public class RemoveWTSSessionCommand : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "WTSLogoffServerError",
+          "RemoveTerminalSession",
           ErrorCategory.InvalidOperation,
           group.Key));
       }

@@ -2,7 +2,7 @@
 Module Name: TerminalSessions
 Module Guid: 6d76a8aa-b182-43e0-9663-1e8f3e514614
 Download Help Link:
-Help Version: 0.1.0
+Help Version: 0.2.0
 Locale: en-US
 ---
 
@@ -16,26 +16,26 @@ This module uses native Windows API calls (WTSEnumerateSessionsExW, WTSQuerySess
 
 ## TerminalSessions Cmdlets
 
-### [Get-WTSClientInfo](Get-WTSClientInfo.md)
+### [Get-TerminalClientInfo](Get-TerminalClientInfo.md)
 
 Retrieves detailed client connection information for a Terminal Services session, including display settings, IP address, encryption level, and device details.  
 
-### [Get-WTSInfo](Get-WTSInfo.md)
+### [Get-TerminalInfo](Get-TerminalInfo.md)
 
 Retrieves detailed Windows Terminal Services information for a session, including connection state, bandwidth statistics, and timing information.  
 
-### [Get-WTSSession](Get-WTSSession.md)
+### [Get-TerminalSession](Get-TerminalSession.md)
 
 Enumerates all sessions on one or more Windows Terminal Services hosts, returning session ID, state, user information, and optionally extended details like idle time.  
 
-### [Remove-WTSSession](Remove-WTSSession.md)
+### [Remove-TerminalSession](Remove-TerminalSession.md)
 
 Logs off a user session from a Windows Terminal Services host with optional confirmation prompts and wait behavior.  
 
-### [Disconnect-WTSSession](Disconnect-WTSSession.md)
+### [Disconnect-TerminalSession](Disconnect-TerminalSession.md)
 
 Disconnects a user session from a Windows Terminal Services host, leaving the user logged in but inactive on the client.  
 
-### [Send-WTSMessage](Send-WTSMessage.md)
+### [Send-TerminalMessage](Send-TerminalMessage.md)
 
 Sends a message to a Windows Terminal Services session.  
