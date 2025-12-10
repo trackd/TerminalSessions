@@ -7,7 +7,7 @@ namespace TerminalSessions.Cmdlets;
 /// Disconnects a WTS session on a Windows host.
 /// </summary>
 [Cmdlet(VerbsCommunications.Disconnect, "TerminalSession", DefaultParameterSetName = "BySessionInfo")]
-[Alias("Disconnect-WTSSession", "dts")]
+[Alias("Disconnect-WTSSession", "dcts")]
 public class DisconnectTerminalSession : PSCmdlet
 {
   /// <summary>

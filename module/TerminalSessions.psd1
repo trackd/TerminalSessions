@@ -41,8 +41,8 @@
         'gtc'
         'gti'
         'rts'
-        'smsg'
-        'dts'
+        'sdtm'
+        'dcts'
     )
     # DscResourcesToExport = @()
     # ModuleList = @()

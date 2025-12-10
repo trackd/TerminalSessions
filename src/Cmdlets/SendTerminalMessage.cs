@@ -6,7 +6,7 @@ using TerminalSessions.Native;
 namespace TerminalSessions.Cmdlets;
 
 [Cmdlet(VerbsCommunications.Send, "TerminalMessage", DefaultParameterSetName = "SessionInfo")]
-[Alias("Send-WTSMessage", "smsg")]
+[Alias("Send-WTSMessage", "sdtm")]
 public sealed class SendTerminalMessage : PSCmdlet
 {
     [Parameter(
