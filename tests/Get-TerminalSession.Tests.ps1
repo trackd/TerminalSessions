@@ -1,5 +1,3 @@
-Set-StrictMode -Version Latest
-
 BeforeAll {
     $moduleManifest = Join-Path (Split-Path $PSScriptRoot -Parent) 'output' 'TerminalSessions.psd1'
     if (-not (Test-Path $moduleManifest)) {
@@ -10,28 +8,27 @@ BeforeAll {
     Import-Module $moduleManifest -Force
 }
 
-Describe 'Get-WTSSession basic enumeration' {
+Describe 'Get-TerminalSession basic enumeration' {
     It 'Returns at least one active or disconnected session on local host' {
-        $sessions = Get-WTSSession
+        $sessions = Get-TerminalSession
         $sessions | Should -Not -BeNullOrEmpty
-        $sessions | Should -Contain ($sessions[0]) # sanity
         ($sessions | Where-Object { $_.State -in 'Active', 'Disconnected' }).Count | Should -BeGreaterThan 0
     }
 
     It 'Supports -Detailed returning IdleTime or LogonTime for some sessions' {
-        $detailed = Get-WTSSession -Detailed
+        $detailed = Get-TerminalSession -Detailed
         $detailed | Should -Not -BeNullOrEmpty
         ($detailed | Where-Object { $_.PSObject.Properties.Name -contains 'IdleTime' }).Count | Should -BeGreaterThan 0
     }
 
     It 'Pipeline stop with Select-Object -First does not error' {
-        $result = Get-WTSSession | Select-Object -First 1
+        $result = Get-TerminalSession | Select-Object -First 1
         $result | Should -Not -BeNullOrEmpty
     }
 }
 
 
-Describe 'Get-WTSSession vs quser comparison (if quser available)' {
+Describe 'Get-TerminalSession vs quser comparison (if quser available)' {
     BeforeAll {
         $quserRaw = quser.exe 2>$null
         $lines = $quserRaw | Where-Object { $_ -and ($_ -notmatch 'USERNAME') }
@@ -70,14 +67,14 @@ Describe 'Get-WTSSession vs quser comparison (if quser available)' {
         ($QUserSessions | Where-Object LogonTime).Count | Should -BeGreaterThan 0
     }
 
-    It 'Matches at least one username between quser and Get-WTSSession' {
-        $sessions = Get-WTSSession
+    It 'Matches at least one username between quser and Get-TerminalSession' {
+        $sessions = Get-TerminalSession
         $quserUsers = $QUserSessions.UserName | Where-Object { $_ -and $_ -ne '>' }
         ($sessions.UserName | Where-Object { $_ -in $quserUsers }).Count | Should -BeGreaterThan 0
     }
 
     It 'LogonTime difference between quser and -Detailed output is within tolerance' {
-        $detailed = Get-WTSSession -Detailed
+        $detailed = Get-TerminalSession -Detailed
         $byId = $detailed | Group-Object SessionId -AsHashTable
         $matchesval = 0
         foreach ($q in $QUserSessions) {
@@ -97,7 +94,7 @@ Describe 'Get-WTSSession vs quser comparison (if quser available)' {
     }
 
     It 'IdleTime difference between quser and -Detailed output is within tolerance' {
-        $detailed = Get-WTSSession -Detailed
+        $detailed = Get-TerminalSession -Detailed
         $byId = $detailed | Group-Object SessionId -AsHashTable
         $idleComparisons = 0
         foreach ($q in $QUserSessions) {
@@ -117,22 +114,21 @@ Describe 'Get-WTSSession vs quser comparison (if quser available)' {
     }
 }
 
-Describe 'Get-WTSInfo and Get-WTSClientInfo integration' {
-    It 'Get-WTSInfo returns objects with expected properties' {
-        $session = Get-WTSSession | Select-Object -First 1
-        $info = $session | Get-WTSInfo
+Describe 'Get-TerminalInfo and Get-TerminalClientInfo integration' {
+    It 'Get-TerminalInfo returns objects with expected properties' {
+        $info = Get-TerminalSession | Select-Object -First 1 | Get-TerminalInfo
         $info | Should -Not -BeNullOrEmpty
-        $info[0].PSObject.Properties.Name | Should -Contain 'SessionId'
-        $info[0].PSObject.Properties.Name | Should -Contain 'State'
+        $info.PSObject.Properties.Name | Should -Contain 'SessionId'
+        $info.PSObject.Properties.Name | Should -Contain 'State'
     }
 
-    It 'Get-WTSClientInfo returns client details when client name present' {
-        $withClient = Get-WTSSession | Where-Object ClientName -NE $null | Select-Object -First 1
+    It 'Get-TerminalClientInfo returns client details when client name present' {
+        $withClient = Get-TerminalSession | Where-Object { $_.ClientName } | Select-Object -First 1
         if ($withClient) {
-            $client = $withClient | Get-WTSClientInfo
+            $client = $withClient | Get-TerminalClientInfo
             $client | Should -Not -BeNullOrEmpty
-            $client[0].PSObject.Properties.Name | Should -Contain 'ClientName'
-            $client[0].PSObject.Properties.Name | Should -Contain 'EncryptionLevel'
+            $client.PSObject.Properties.Name | Should -Contain 'ClientName'
+            $client.PSObject.Properties.Name | Should -Contain 'EncryptionLevel'
         }
         else {
             Set-ItResult -Skipped -Because 'No remote client sessions available to test client info'

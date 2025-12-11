@@ -11,7 +11,7 @@
     ClrVersion             = '4.0'
     GUID                   = '6d76a8aa-b182-43e0-9663-1e8f3e514614'
     Author                 = 'trackd'
-    CompanyName            = 'Unknown'
+    CompanyName            = 'trackd'
     Copyright              = '(c) trackd. All rights reserved.'
     Description            = 'PowerShell module for managing Windows Remote Desktop Sessions.'
     TypesToProcess         = @(
