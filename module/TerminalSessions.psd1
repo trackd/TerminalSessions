@@ -4,7 +4,7 @@
 
 @{
     RootModule             = 'TerminalSessions.dll'
-    ModuleVersion          = '0.0.2'
+    ModuleVersion          = '0.2.0'
     CompatiblePSEditions   = @('Desktop', 'Core')
     PowerShellVersion      = '5.1'
     DotNetFrameworkVersion = '4.7.2'
