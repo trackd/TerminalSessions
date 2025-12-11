@@ -30,7 +30,7 @@ public class GetTerminalSession : PSCmdlet
   /// <summary>
   /// <para type="description">If set, filters out disconnected sessions.</para>
   /// </summary>
-  [Parameter()]
+  [Parameter]
   public SwitchParameter OnlineOnly { get; set; }
 
   protected override void ProcessRecord()

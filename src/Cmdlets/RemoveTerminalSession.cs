@@ -14,6 +14,7 @@ namespace TerminalSessions.Cmdlets;
   DefaultParameterSetName = "BySessionInfo"
 )]
 [Alias("Remove-WTSSession", "rts")]
+[OutputType(typeof(bool))]
 public class RemoveTerminalSession : PSCmdlet
 {
   /// <summary>
@@ -39,6 +40,7 @@ public class RemoveTerminalSession : PSCmdlet
       Mandatory = true,
       ParameterSetName = "ByManual"
   )]
+  [ValidateRange(1, uint.MaxValue)]
   public uint SessionId { get; set; }
 
   [Parameter]
@@ -76,12 +78,8 @@ public class RemoveTerminalSession : PSCmdlet
             try
             {
               bool result = WtsNative.WTSLogoffSession(serverInfo, session.SessionId, WaitForLogoff.IsPresent);
-              var output = new PSObject();
-              output.Properties.Add(new PSNoteProperty("SessionId", session.SessionId));
-              output.Properties.Add(new PSNoteProperty("UserName", session.UserName));
-              output.Properties.Add(new PSNoteProperty("ComputerName", session.ComputerName));
-              output.Properties.Add(new PSNoteProperty("Result", result));
-              WriteObject(output);
+              WriteVerbose($"Removed session {session.SessionId} on {session.ComputerName}: {result}");
+              WriteObject(result);
             }
             catch (Exception ex)
             {

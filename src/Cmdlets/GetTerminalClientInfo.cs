@@ -35,6 +35,7 @@ public class GetTerminalClientInfo : PSCmdlet
     Mandatory = true,
     ParameterSetName = "ByManual"
     )]
+  [ValidateRange(1, uint.MaxValue)]
   public uint SessionId { get; set; }
 
   private readonly List<SessionInfo> _sessions = [];

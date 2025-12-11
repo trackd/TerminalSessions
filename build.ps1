@@ -1,5 +1,4 @@
 #! /usr/bin/pwsh
-#Requires -Version 5.1 -Module InvokeBuild
 param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
@@ -20,12 +19,18 @@ $buildparams = @{
     Result        = 'Result'
     Safe          = $true
 }
+if (-Not (Get-Module -ListAvailable -Name InvokeBuild)) {
+    Install-Module -Name InvokeBuild -Scope CurrentUser -Force -AllowClobber
+}
+Import-Module InvokeBuild -ErrorAction Stop
+
 if ($task) {
     $buildparams.Task = $task
 }
-if ($BuildAndTestOnly) {
+elseif ($BuildAndTestOnly) {
     $buildparams.Task = 'BuildAndTest'
 }
+
 if (-Not $env:CI) {
     # this is just so the dll doesn't get locked on and i can rebuild without restarting terminal
     $sb = {

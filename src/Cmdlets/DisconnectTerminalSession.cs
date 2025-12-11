@@ -8,6 +8,7 @@ namespace TerminalSessions.Cmdlets;
 /// </summary>
 [Cmdlet(VerbsCommunications.Disconnect, "TerminalSession", DefaultParameterSetName = "BySessionInfo")]
 [Alias("Disconnect-WTSSession", "dcts")]
+[OutputType(typeof(bool))]
 public class DisconnectTerminalSession : PSCmdlet
 {
   /// <summary>
@@ -32,6 +33,7 @@ public class DisconnectTerminalSession : PSCmdlet
     Mandatory = true,
     ParameterSetName = "ByManual"
   )]
+  [ValidateRange(1, uint.MaxValue)]
   public uint SessionId { get; set; }
 
   private readonly List<SessionInfo> _sessions = [];

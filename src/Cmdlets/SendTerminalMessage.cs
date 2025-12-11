@@ -5,8 +5,10 @@ using TerminalSessions.Native;
 
 namespace TerminalSessions.Cmdlets;
 
-[Cmdlet(VerbsCommunications.Send, "TerminalMessage", DefaultParameterSetName = "SessionInfo")]
+[Cmdlet(VerbsCommunications.Send, "TerminalMessage", DefaultParameterSetName = "BySessionInfo")]
 [Alias("Send-WTSMessage", "sdtm")]
+[OutputType(typeof(MessageBoxResult))]
+[OutputType(typeof(bool))]
 public sealed class SendTerminalMessage : PSCmdlet
 {
     [Parameter(
@@ -31,6 +33,7 @@ public sealed class SendTerminalMessage : PSCmdlet
         ParameterSetName = "ByManual",
         Position = 1
     )]
+    [ValidateRange(1, uint.MaxValue)]
     public uint SessionId { get; set; }
 
     [Parameter(Mandatory = true, Position = 2)]
@@ -40,10 +43,8 @@ public sealed class SendTerminalMessage : PSCmdlet
     [Parameter(Mandatory = true, Position = 3)]
     [ValidateNotNullOrEmpty]
     public string? Body { get; set; }
-
     [Parameter]
     public MessageBoxType? Type { get; set; }
-
     [Parameter]
     public int? TimeoutSeconds { get; set; }
     protected override void ProcessRecord()
@@ -58,33 +59,25 @@ public sealed class SendTerminalMessage : PSCmdlet
                 ComputerName = SessionInfo.ComputerName;
                 SessionId = SessionInfo.SessionId;
             }
-            if (!string.IsNullOrEmpty(ComputerName))
+            if (useAdvanced)
             {
-                if (useAdvanced)
-                {
-                    var response = WtsNative.SendMessage(
-                        ComputerName!,
-                        SessionId,
-                        title,
-                        body,
-                        Type ?? MessageBoxType.BUTTON_OK,
-                        TimeoutSeconds ?? 60,
-                        true);
-                    WriteObject(response);
-                }
-                else
-                {
-                    var (result, num) = WtsNative.SendMessage(ComputerName!, SessionId, title, body);
-                    WriteVerbose($"Response: {result} Number: {num}");
-                }
+                // we are expecting a response
+                var response = WtsNative.SendMessage(
+                    ComputerName!,
+                    SessionId,
+                    title,
+                    body,
+                    Type ?? MessageBoxType.BUTTON_OK,
+                    TimeoutSeconds ?? 60,
+                    true);
+                WriteObject(response);
             }
             else
             {
-                WriteError(new ErrorRecord(
-                    new ArgumentException("ComputerName or SessionInfo must be provided."),
-                    "MissingTarget",
-                    ErrorCategory.InvalidArgument,
-                    this));
+                // fire and forget
+                var (result, num) = WtsNative.SendMessage(ComputerName!, SessionId, title, body);
+                WriteObject(result);
+                WriteVerbose($"Response: {result} Number: {num}");
             }
         }
         catch (Exception ex)
