@@ -69,7 +69,7 @@ public class GetTerminalInfo : PSCmdlet
           {
             WriteError(new ErrorRecord(
               ex,
-              "GetTerminalInfo",
+              "TerminalInfo",
               ErrorCategory.InvalidOperation,
               session));
           }
@@ -79,8 +79,8 @@ public class GetTerminalInfo : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "GetTerminalInfo",
-          ErrorCategory.InvalidOperation,
+          "TerminalSessionsServer",
+          ErrorCategory.OpenError,
           group.Key));
       }
       finally

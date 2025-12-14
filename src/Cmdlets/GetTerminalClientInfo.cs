@@ -44,10 +44,7 @@ public class GetTerminalClientInfo : PSCmdlet
   {
     if (ParameterSetName == "BySessionInfo" && SessionInfo is not null)
     {
-      if (SessionInfo.State == WtsConnectState.Listen ||
-        SessionInfo.State == WtsConnectState.Down ||
-        SessionInfo.State == WtsConnectState.Init ||
-        SessionInfo.State == WtsConnectState.Disconnected)
+      if (SessionInfo.State.IsInactive())
       {
         WriteVerbose($"Session {SessionInfo.SessionId} on {SessionInfo.ComputerName} has no client attached (State: {SessionInfo.State}). Skipping.");
         return;
@@ -84,7 +81,7 @@ public class GetTerminalClientInfo : PSCmdlet
           {
             WriteError(new ErrorRecord(
               ex,
-              "GetTerminalClientInfo",
+              "TerminalClientInfoSession",
               ErrorCategory.InvalidOperation,
               session));
           }
@@ -94,8 +91,8 @@ public class GetTerminalClientInfo : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "GetTerminalClientInfo",
-          ErrorCategory.InvalidOperation,
+          "TerminalSessionsServer",
+          ErrorCategory.OpenError,
           group.Key));
       }
       finally

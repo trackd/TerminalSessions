@@ -22,4 +22,23 @@
     </MemberSet>
   </Members>
 </Type>
+<Type>
+  <Name>TerminalSessions.SendMessageResult</Name>
+  <Members>
+    <MemberSet>
+      <Name>PSStandardMembers</Name>
+      <Members>
+        <PropertySet>
+          <Name>DefaultDisplayPropertySet</Name>
+          <ReferencedProperties>
+            <Name>ComputerName</Name>
+            <Name>SessionId</Name>
+            <Name>Success</Name>
+            <Name>Response</Name>
+          </ReferencedProperties>
+        </PropertySet>
+      </Members>
+    </MemberSet>
+  </Members>
+</Type>
 </Types>

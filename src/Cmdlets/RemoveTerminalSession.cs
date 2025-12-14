@@ -45,6 +45,9 @@ public class RemoveTerminalSession : PSCmdlet
 
   [Parameter]
   public SwitchParameter WaitForLogoff { get; set; }
+
+  [Parameter]
+  public SwitchParameter Force { get; set; }
   private readonly List<SessionInfo> _sessions = [];
 
   protected override void ProcessRecord()
@@ -73,7 +76,7 @@ public class RemoveTerminalSession : PSCmdlet
         foreach (var session in group)
         {
           var target = $"Logoff Session {session.SessionId} for {session.UserName}@{session.ComputerName} State: {session.State}";
-          if (ShouldProcess(target))
+          if (ShouldProcess(target) || Force.IsPresent)
           {
             try
             {
@@ -96,8 +99,8 @@ public class RemoveTerminalSession : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "RemoveTerminalSession",
-          ErrorCategory.InvalidOperation,
+          "TerminalSessionsServer",
+          ErrorCategory.OpenError,
           group.Key));
       }
       finally

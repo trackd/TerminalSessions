@@ -33,6 +33,12 @@ public class GetTerminalSession : PSCmdlet
   [Parameter]
   public SwitchParameter OnlineOnly { get; set; }
 
+  /// <summary>
+  /// <para type="description">only return sessions with specified state.</para>
+  /// </summary>
+  [Parameter]
+  public WtsConnectState? State { get; set; }
+
   protected override void ProcessRecord()
   {
     foreach (var name in ComputerName)
@@ -52,12 +58,15 @@ public class GetTerminalSession : PSCmdlet
         {
           sessions = WtsNative.WTSEnumerateSessionsExtra(serverInfo, name);
         }
-
         if (sessions is not null)
         {
-          if (OnlineOnly.IsPresent)
+          if (State is not null)
           {
-            sessions = [.. sessions.Where(s => s.State != WtsConnectState.Disconnected)];
+            sessions = [.. sessions.Where(s => s.State == State)];
+          }
+          else if (OnlineOnly.IsPresent)
+          {
+            sessions = [.. sessions.Where(s => s.State.IsOnline())];
           }
           WriteObject(sessions, true);
         }
@@ -72,7 +81,7 @@ public class GetTerminalSession : PSCmdlet
       {
         WriteError(new ErrorRecord(
           ex,
-          "GetTerminalSession",
+          "TerminalSessionsServer",
           ErrorCategory.InvalidOperation,
           name));
       }

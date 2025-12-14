@@ -372,14 +372,12 @@ public static class WtsNative
     }
   }
   /// <summary>
-  /// Sends a message box to a specified session
+  /// Disconnects a specified session
   /// </summary>
   /// <param name="serverName">The name of the terminal server</param>
-  /// <param name="sessionId">The session ID to send the message to</param>
-  /// <param name="messageTitle">The message box title</param>
-  /// <param name="messageBody">The message box body</param>
+  /// <param name="sessionId">The session ID to disconnect</param>
   /// <returns>0 if successful, otherwise Win32 error code</returns>
-  public static (bool, int) SendMessage(string serverName, uint sessionId, string messageTitle, string messageBody)
+  public static bool DisconnectSession(string serverName, uint sessionId)
   {
     IntPtr hServer = WtsInterop.WTSOpenServerExW(serverName);
     if (hServer == IntPtr.Zero)
@@ -388,35 +386,26 @@ public static class WtsNative
     }
     try
     {
-      // WTSSendMessage expects lengths in bytes for Unicode strings
-      string safeTitle = messageTitle ?? string.Empty;
-      string safeBody = messageBody ?? string.Empty;
-      int titleBytes = Encoding.Unicode.GetByteCount(safeTitle);
-      int bodyBytes = Encoding.Unicode.GetByteCount(safeBody);
-      bool success = WtsInterop.WTSSendMessage(
-        hServer,
-        sessionId,
-        safeTitle,
-        titleBytes,
-        safeBody,
-        bodyBytes,
-        0,
-        0,
-        out MessageBoxResult response,
-        false);
+      bool success = WtsInterop.WTSDisconnectSession(hServer, sessionId, true);
       if (!success)
+      {
         throw new Win32Exception(Marshal.GetLastWin32Error());
-      return (success, (int)response);
+      }
+      return success;
     }
     finally
     {
       WtsInterop.WTSCloseServer(hServer);
     }
   }
+  public static bool WTSDisconnectSession(IntPtr hServer, uint SessionId, bool bWait)
+  {
+    return WtsInterop.WTSDisconnectSession(hServer, SessionId, bWait);
+  }
   /// <summary>
   /// Shows a message box to a session and returns the user's response.
   /// </summary>
-  /// <param name="serverName">The name of the terminal server</param>
+  /// <param name="hServer">hServer</param>
   /// <param name="sessionId">The session ID to send the message to</param>
   /// <param name="messageTitle">The message box title</param>
   /// <param name="messageBody">The message box body</param>
@@ -425,7 +414,7 @@ public static class WtsNative
   /// <param name="wait">Whether to wait for user response</param>
   /// <returns>MessageBoxResult enum value</returns>
   public static MessageBoxResult SendMessage(
-    string serverName,
+    IntPtr hServer,
     uint sessionId,
     string messageTitle,
     string messageBody,
@@ -433,9 +422,6 @@ public static class WtsNative
     int timeout = 0,
     bool wait = true)
   {
-    IntPtr hServer = WTSOpenServerEx(serverName);
-    if (hServer == IntPtr.Zero)
-      throw new Win32Exception(Marshal.GetLastWin32Error());
     try
     {
       string safeTitle = messageTitle ?? string.Empty;
@@ -457,37 +443,9 @@ public static class WtsNative
         return MessageBoxResult.Failed;
       return response;
     }
-    finally
+    catch
     {
-      WTSCloseServer(hServer);
-    }
-  }
-
-  /// <summary>
-  /// Disconnects a specified session
-  /// </summary>
-  /// <param name="serverName">The name of the terminal server</param>
-  /// <param name="sessionId">The session ID to disconnect</param>
-  /// <returns>0 if successful, otherwise Win32 error code</returns>
-  public static bool DisconnectSession(string serverName, uint sessionId)
-  {
-    IntPtr hServer = WtsInterop.WTSOpenServerExW(serverName);
-    if (hServer == IntPtr.Zero)
-    {
-      throw new Win32Exception(Marshal.GetLastWin32Error());
-    }
-    try
-    {
-      bool success = WtsInterop.WTSDisconnectSession(hServer, sessionId, true);
-      if (!success)
-      {
-        throw new Win32Exception(Marshal.GetLastWin32Error());
-      }
-      return true;
-    }
-    finally
-    {
-      WtsInterop.WTSCloseServer(hServer);
+      return MessageBoxResult.Failed;
     }
   }
   #endregion

@@ -16,7 +16,22 @@ public enum WtsConnectState : int
   Down,
   Init
 }
+public static class WtsConnectStateExtensions
+{
+  public static bool IsInactive(this WtsConnectState state)
+      => state is WtsConnectState.Listen
+                or WtsConnectState.Down
+                or WtsConnectState.Init
+                or WtsConnectState.Disconnected;
 
+  public static bool IsOnline(this WtsConnectState state)
+      => state is WtsConnectState.Active
+                or WtsConnectState.Connected
+                or WtsConnectState.ConnectQuery
+                or WtsConnectState.Shadow
+                or WtsConnectState.Idle
+                or WtsConnectState.Reset;
+}
 public enum WTS_TYPE_CLASS : int
 {
   WTSTypeProcessInfoLevel0 = 0,
